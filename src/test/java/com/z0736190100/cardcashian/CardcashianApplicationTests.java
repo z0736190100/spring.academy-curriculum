@@ -37,7 +37,7 @@ class CardcashianApplicationTests {
     @Autowired
     TestRestTemplate restTemplate;
 
-    private String buildCashCardsUri(String idParam){
+    private String buildCashCardsUri(String idParam) {
         UriComponents uriComponents = UriComponentsBuilder
                 .fromUriString(CASHCARDS_URL + "/" + "{id}")
                 .encode()
@@ -54,7 +54,9 @@ class CardcashianApplicationTests {
     void shouldReturnOkOnExistingCashCardRequest() {
         String url = buildCashCardsUri(String.valueOf(EXPECTED_ID));
 
-        ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
+        ResponseEntity<String> response = restTemplate
+                .withBasicAuth("sarah1", "abc123")
+                .getForEntity(url, String.class);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
 
@@ -64,7 +66,9 @@ class CardcashianApplicationTests {
     void shouldReturnCorrectExistingCashCard() {
         String url = buildCashCardsUri(String.valueOf(EXPECTED_ID));
 
-        ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
+        ResponseEntity<String> response = restTemplate
+                .withBasicAuth("sarah1", "abc123")
+                .getForEntity(url, String.class);
         DocumentContext realRespJson = JsonPath.parse(response.getBody());
         Number realId = realRespJson.read($_ID);
         Number realAmount = realRespJson.read($_AMOUNT);
@@ -77,7 +81,9 @@ class CardcashianApplicationTests {
     void shouldReturnNotNullWhenRequestedDataExist() {
         String url = buildCashCardsUri(String.valueOf(EXPECTED_ID));
 
-        ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
+        ResponseEntity<String> response = restTemplate
+                .withBasicAuth("sarah1", "abc123")
+                .getForEntity(url, String.class);
         DocumentContext realRespJson = JsonPath.parse(response.getBody());
 
         assertThat(realRespJson).isNotNull();
@@ -86,9 +92,11 @@ class CardcashianApplicationTests {
     @Test
     @DirtiesContext
     void shouldReturnCreatedOnCreateANewCashCard() {
-        CashCard newCashCard = new CashCard(null, 250.00);
+        CashCard newCashCard = new CashCard(null, 250.00, "sarah1");
 
-        ResponseEntity<Void> createResponse = restTemplate.postForEntity(CASHCARDS_URL, newCashCard, Void.class);
+        ResponseEntity<Void> createResponse = restTemplate
+                .withBasicAuth("sarah1", "abc123")
+                .postForEntity(CASHCARDS_URL, newCashCard, Void.class);
 
         assertThat(createResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED);
     }
@@ -96,14 +104,18 @@ class CardcashianApplicationTests {
     @Test
     @DirtiesContext
     void shouldHaveLocationHeaderInResponseOnNewCashCardCreated() {
-        CashCard newCashCard = new CashCard(null, 250.00);
+        CashCard newCashCard = new CashCard(null, 250.00, "sarah1");
 
-        ResponseEntity<Void> createResponse = restTemplate.postForEntity(CASHCARDS_URL, newCashCard, Void.class);
+        ResponseEntity<Void> createResponse = restTemplate
+                .withBasicAuth("sarah1", "abc123")
+                .postForEntity(CASHCARDS_URL, newCashCard, Void.class);
 
         URI locationOfNewCashCard = createResponse.getHeaders().getLocation();
         assertThat(locationOfNewCashCard).isNotNull();
 
-        ResponseEntity<String> getResponse = restTemplate.getForEntity(locationOfNewCashCard, String.class);
+        ResponseEntity<String> getResponse = restTemplate
+                .withBasicAuth("sarah1", "abc123")
+                .getForEntity(locationOfNewCashCard, String.class);
 
         assertThat(getResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
     }
@@ -111,11 +123,15 @@ class CardcashianApplicationTests {
     @Test
     @DirtiesContext
     void shouldReturnOkOnLocationGetForCashCardCreated() {
-        CashCard newCashCard = new CashCard(null, 250.00);
+        CashCard newCashCard = new CashCard(null, 250.00, "sarah1");
 
-        ResponseEntity<Void> createResponse = restTemplate.postForEntity(CASHCARDS_URL, newCashCard, Void.class);
+        ResponseEntity<Void> createResponse = restTemplate
+                .withBasicAuth("sarah1", "abc123")
+                .postForEntity(CASHCARDS_URL, newCashCard, Void.class);
         URI locationOfNewCashCard = createResponse.getHeaders().getLocation();
-        ResponseEntity<String> getResponse = restTemplate.getForEntity(locationOfNewCashCard, String.class);
+        ResponseEntity<String> getResponse = restTemplate
+                .withBasicAuth("sarah1", "abc123")
+                .getForEntity(locationOfNewCashCard, String.class);
 
         assertThat(getResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
     }
@@ -124,7 +140,8 @@ class CardcashianApplicationTests {
     @Test
     void shouldNotReturnACashCardWithAnUnknownId() {
         String url = buildCashCardsUri(UNKNOWN_ID);
-        ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
+        ResponseEntity<String> response = restTemplate
+                .withBasicAuth("sarah1", "abc123").getForEntity(url, String.class);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
         assertThat(response.getBody()).isBlank();
@@ -134,7 +151,8 @@ class CardcashianApplicationTests {
     @Test
     @DirtiesContext
     void shouldReturnAllCashCardsWhenListIsRequested() {
-        ResponseEntity<String> response = restTemplate.getForEntity("/cashcards", String.class);
+        ResponseEntity<String> response = restTemplate
+                .withBasicAuth("sarah1", "abc123").getForEntity("/cashcards", String.class);
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
 
         DocumentContext documentContext = JsonPath.parse(response.getBody());
@@ -151,7 +169,8 @@ class CardcashianApplicationTests {
     @Test
     void shouldReturnAPageOfCashCards() {
         String pageAndSizeUrl = "/cashcards?page=0&size=1";
-        ResponseEntity<String> response = restTemplate.getForEntity(pageAndSizeUrl, String.class);
+        ResponseEntity<String> response = restTemplate
+                .withBasicAuth("sarah1", "abc123").getForEntity(pageAndSizeUrl, String.class);
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
 
         DocumentContext documentContext = JsonPath.parse(response.getBody());
@@ -162,7 +181,8 @@ class CardcashianApplicationTests {
     @Test
     void shouldReturnASortedPageOfCashCards() {
         String pageAndSizeAndSortUrl = "/cashcards?page=0&size=1&sort=amount,asc";
-        ResponseEntity<String> response = restTemplate.getForEntity(pageAndSizeAndSortUrl, String.class);
+        ResponseEntity<String> response = restTemplate
+                .withBasicAuth("sarah1", "abc123").getForEntity(pageAndSizeAndSortUrl, String.class);
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
 
         DocumentContext documentContext = JsonPath.parse(response.getBody());
@@ -170,7 +190,20 @@ class CardcashianApplicationTests {
         assertThat(read.size()).isEqualTo(1);
 
         double amount = documentContext.read("$[0].amount");
-        assertThat(amount).isEqualTo(150.00);
+        assertThat(amount).isEqualTo(1.00);
+    }
+
+    @Test
+    void shouldNotReturnACashCardWhenUsingBadCredentials() {
+        ResponseEntity<String> response = restTemplate
+                .withBasicAuth("BAD-USER", "abc123")
+                .getForEntity("/cashcards/99", String.class);
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
+
+        response = restTemplate
+                .withBasicAuth("sarah1", "BAD-PASSWORD")
+                .getForEntity("/cashcards/99", String.class);
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
     }
 
 }
