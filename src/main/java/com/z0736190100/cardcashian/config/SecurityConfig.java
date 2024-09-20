@@ -49,7 +49,12 @@ public class SecurityConfig {
                 .password(passwordEncoder.encode("qrs456"))
                 .roles(ROLE_NON_OWNER)
                 .build();
-        return new InMemoryUserDetailsManager(sarah, hankOwnsNoCards);
+        UserDetails kumar = users
+                .username("kumar2")
+                .password(passwordEncoder.encode("xyz789"))
+                .roles(ROLE_CARD_OWNER)
+                .build();
+        return new InMemoryUserDetailsManager(sarah, hankOwnsNoCards, kumar);
     }
 
 }
