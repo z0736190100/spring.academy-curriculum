@@ -47,8 +47,11 @@ public class CashCardController {
     }
 
     @PostMapping
-    private ResponseEntity<Void> createCashCard(@RequestBody CashCard newCashCardRequest, UriComponentsBuilder ucb) {
-        CashCard savedCashCard = cashCardRepository.save(newCashCardRequest);
+    private ResponseEntity<Void> createCashCard(@RequestBody CashCard newCashCardRequest,
+                                                UriComponentsBuilder ucb, Principal principal) {
+
+        CashCard cashCardWithOwner = new CashCard(null, newCashCardRequest.amount(), principal.getName());
+        CashCard savedCashCard = cashCardRepository.save(cashCardWithOwner);
 
         // to meet specifications requirement for "create" method:
         // https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/201
@@ -58,6 +61,23 @@ public class CashCardController {
                 .toUri();
 
         return ResponseEntity.created(locationOfNewCashCard).build();
+    }
+
+    @PutMapping("/{requestedId}")
+    private ResponseEntity<Void> putCashCard(@PathVariable Long requestedId, @RequestBody CashCard cashCardUpdate,
+                                             Principal principal) {
+
+        CashCard cashCard = cashCardRepository.findByIdAndOwner(requestedId, principal.getName());
+
+        if (cashCard != null) {
+            CashCard updatedCashCard = new CashCard(cashCard.id(), cashCardUpdate.amount(), principal.getName());
+
+            cashCardRepository.save(updatedCashCard);
+
+            return ResponseEntity.noContent().build();
+        }
+
+        return ResponseEntity.notFound().build();
     }
 
 }
