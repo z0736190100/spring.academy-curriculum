@@ -1,0 +1,21 @@
+spring:
+  application:
+    name: cardcashian
+server:
+  port: 8081
+#spring:
+#  cloud:
+#    discovery:
+#      enabled: false
+eureka:
+  client:
+    enabled: false
+#eureka:
+#  client:
+#    serviceUrl:
+#      defaultZone: http://localhost:8761/eureka/
+#    register-with-eureka: true
+#    fetch-registry: true
+#  instance:
+#    prefer-ip-address: true
+

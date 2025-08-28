@@ -262,6 +262,7 @@ class CardcashianApplicationTests {
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
     }
 
+    // PUT for non-owner should return 404
     @Test
     void shouldNotUpdateACashCardThatIsOwnedBySomeoneElse() {
         CashCard kumarsCard = new CashCard(null, 333.33, null);
@@ -274,6 +275,7 @@ class CardcashianApplicationTests {
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
     }
 
+    // DELETE must return 204, then GET on deleted resource must return 404
     @Test
     @DirtiesContext
     void shouldDeleteAnExistingCashCard() {
@@ -283,6 +285,7 @@ class CardcashianApplicationTests {
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
 
+        // verification if deletion succeeded
         ResponseEntity<String> getResponse = restTemplate
                 .withBasicAuth("sarah1", "abc123")
                 .getForEntity("/cashcards/99", String.class);
@@ -290,6 +293,7 @@ class CardcashianApplicationTests {
         assertThat(getResponse.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
     }
 
+    // DELETE must return 404 on non-existing id attempt
     @Test
     void shouldNotDeleteACashCardThatDoesNotExist() {
         ResponseEntity<Void> deleteResponse = restTemplate
@@ -298,6 +302,7 @@ class CardcashianApplicationTests {
         assertThat(deleteResponse.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
     }
 
+    // DELETE must be not allowed for the non-owner
     @Test
     void shouldNotAllowDeletionOfCashCardsTheyDoNotOwn() {
         ResponseEntity<Void> deleteResponse = restTemplate
@@ -305,6 +310,7 @@ class CardcashianApplicationTests {
                 .exchange("/cashcards/102", HttpMethod.DELETE, null, Void.class);
         assertThat(deleteResponse.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
 
+        // verify that attempted resource still exist, GET must return 200
         ResponseEntity<String> getResponse = restTemplate
                 .withBasicAuth("kumar2", "xyz789")
                 .getForEntity("/cashcards/102", String.class);
